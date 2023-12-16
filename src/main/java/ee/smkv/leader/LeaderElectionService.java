@@ -24,6 +24,16 @@ package ee.smkv.leader;
  * SOFTWARE.
  */
 public interface LeaderElectionService {
-    boolean isLeader();
-    void releaseLeader();
+
+    /**
+     * Checks leadership and try to borrow leadership if no another active leader
+     *
+     * @return true if this instance is leader
+     */
+    boolean checkAndBorrowLeadership();
+
+    /**
+     * Release leadership lock if it was current leader
+     */
+    void releaseLeadership();
 }

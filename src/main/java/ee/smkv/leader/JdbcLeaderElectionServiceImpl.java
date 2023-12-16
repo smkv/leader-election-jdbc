@@ -74,7 +74,7 @@ public class JdbcLeaderElectionServiceImpl implements LeaderElectionService, Ini
     }
 
     @Override
-    public boolean isLeader() {
+    public boolean checkAndBorrowLeadership() {
         Leader leader = getLeader();
         long time = currentTimeMillis.get();
         String leaderName = properties.getLeaderName();
@@ -99,8 +99,8 @@ public class JdbcLeaderElectionServiceImpl implements LeaderElectionService, Ini
 
 
     @Override
-    public void releaseLeader() {
-        if (isLeader()) {
+    public void releaseLeadership() {
+        if (checkAndBorrowLeadership()) {
             jdbcTemplate.update(releaseSql);
         }
     }

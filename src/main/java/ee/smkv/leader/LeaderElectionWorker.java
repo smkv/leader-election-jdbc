@@ -67,13 +67,13 @@ public class LeaderElectionWorker {
             scheduledExecutorService.shutdownNow();
         }
         if (leader) {
-            leaderElectionService.releaseLeader();
+            leaderElectionService.releaseLeadership();
         }
         notifyRevoked();
     }
 
     protected void checkLeader() {
-        boolean newLeader = leaderElectionService.isLeader();
+        boolean newLeader = leaderElectionService.checkAndBorrowLeadership();
         boolean granted = newLeader != leader && newLeader;
         boolean revoked = newLeader != leader && !newLeader;
         this.leader = newLeader;

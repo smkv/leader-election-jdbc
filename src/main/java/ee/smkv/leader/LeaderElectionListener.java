@@ -24,6 +24,14 @@ package ee.smkv.leader;
  * SOFTWARE.
  */
 public interface LeaderElectionListener {
+
+    /**
+     * The method will be invoked then leadership granted for current instance
+     */
     void granted();
+
+    /**
+     * The method will be invoked then leadership revoked for current instance
+     */
     void revoked();
 }

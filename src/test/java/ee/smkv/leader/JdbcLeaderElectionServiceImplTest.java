@@ -51,7 +51,7 @@ class JdbcLeaderElectionServiceImplTest {
     void isLeader_becameLeader() {
         dbHelper.normalInitialization();
         service.afterPropertiesSet();
-        assertTrue(service.isLeader());
+        assertTrue(service.checkAndBorrowLeadership());
     }
 
     @Test
@@ -59,7 +59,7 @@ class JdbcLeaderElectionServiceImplTest {
         dbHelper.normalInitialization();
         dbHelper.updateRecord("another", new Timestamp(System.currentTimeMillis() - 1));
         service.afterPropertiesSet();
-        assertTrue(service.isLeader());
+        assertTrue(service.checkAndBorrowLeadership());
     }
 
     @Test
@@ -67,7 +67,7 @@ class JdbcLeaderElectionServiceImplTest {
         dbHelper.normalInitialization();
         dbHelper.updateRecord("another", new Timestamp(System.currentTimeMillis() + 1000));
         service.afterPropertiesSet();
-        assertFalse(service.isLeader());
+        assertFalse(service.checkAndBorrowLeadership());
     }
 
 }
