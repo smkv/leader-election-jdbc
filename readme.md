@@ -30,6 +30,35 @@ public class MyApplication {
 }
 ```
 
+### Implement interface for a bean
+
+Implement interface `ee.smkv.leader.LeaderElectionListener` for a bean you like know who is leader.
+
+```java
+
+@Service
+public class MyService implements LeaderElectionListener {
+  private boolean leader;
+
+  @Override
+  public void granted() {
+    leader = true;
+  }
+
+  @Override
+  public void revoked() {
+    leader = false;
+  }
+
+  public void doWork() {
+    if (leader) {
+      // do something only if your instance is leader
+    }
+  }
+}
+
+```
+
 ### Configuration
 
 All properties are optional:
