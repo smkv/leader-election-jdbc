@@ -57,7 +57,7 @@ public class JdbcLeaderElectionServiceImpl implements LeaderElectionService, Ini
         if (Objects.equals(leader.name, leaderName)) {
             return tryBecameLeader(time, leaderName);
         }
-        if (leader.until == null || new Timestamp(time).after(leader.until)) {
+        if (leader.until == null || time > leader.until.getTime()) {
             return tryBecameLeader(time, leaderName);
         }
 
