@@ -61,11 +61,11 @@ public class JdbcLeaderElectionServiceImpl implements LeaderElectionService, Ini
             releaseSql = String.format("UPDATE %3$s SET %1$s = NULL, %2$s = NULL", properties.getLeaderNameFiled(), properties.getLeaderUntilFiled(), properties.getLeaderTableName());
             getLeader();
         } catch (BadSqlGrammarException e) {
-            throw new IllegalStateException("Most probably table does not exists:" + e.getMessage(), e);
+            throw new IllegalStateException("Most probably table " + properties.getLeaderTableName() + " does not exists:" + e.getMessage(), e);
         } catch (EmptyResultDataAccessException e) {
-            throw new IllegalStateException("Table is empty, expected at only one record");
+            throw new IllegalStateException("Table " + properties.getLeaderTableName() + " is empty, expected at only one record");
         } catch (IncorrectResultSizeDataAccessException e) {
-            throw new IllegalStateException("Table has more than 1 record, expected at only one record");
+            throw new IllegalStateException("Table " + properties.getLeaderTableName() + " has more than 1 record, expected at only one record");
         }
     }
 
