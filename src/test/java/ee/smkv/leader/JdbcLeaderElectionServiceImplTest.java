@@ -15,7 +15,7 @@ class JdbcLeaderElectionServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new JdbcLeaderElectionServiceImpl(dbHelper.getDataSource());
+        service = new JdbcLeaderElectionServiceImpl(dbHelper.getDataSource(), new LeaderElectionProperties());
     }
 
     @AfterEach
@@ -50,6 +50,7 @@ class JdbcLeaderElectionServiceImplTest {
     @Test
     void isLeader_becameLeader() {
         dbHelper.normalInitialization();
+        service.afterPropertiesSet();
         assertTrue(service.isLeader());
     }
 
@@ -57,6 +58,7 @@ class JdbcLeaderElectionServiceImplTest {
     void isLeader_becameLeader2() {
         dbHelper.normalInitialization();
         dbHelper.updateRecord("another", new Timestamp(System.currentTimeMillis() - 1));
+        service.afterPropertiesSet();
         assertTrue(service.isLeader());
     }
 
@@ -64,6 +66,7 @@ class JdbcLeaderElectionServiceImplTest {
     void isLeader_anotherLeader() {
         dbHelper.normalInitialization();
         dbHelper.updateRecord("another", new Timestamp(System.currentTimeMillis() + 1000));
+        service.afterPropertiesSet();
         assertFalse(service.isLeader());
     }
 

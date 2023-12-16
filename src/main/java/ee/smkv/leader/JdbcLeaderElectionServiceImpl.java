@@ -11,23 +11,30 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 public class JdbcLeaderElectionServiceImpl implements LeaderElectionService, InitializingBean {
 
     private final JdbcTemplate jdbcTemplate;
-    private final String name = UUID.randomUUID().toString();
-    protected Supplier<Long> currentTimeMillis = System::currentTimeMillis;
+    private final LeaderElectionProperties properties;
 
-    public JdbcLeaderElectionServiceImpl(DataSource dataSource) {
+    protected Supplier<Long> currentTimeMillis = System::currentTimeMillis;
+    private String selectSql;
+    private String updateSql;
+    private String releaseSql;
+
+    public JdbcLeaderElectionServiceImpl(DataSource dataSource, LeaderElectionProperties properties) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+        this.properties = properties;
     }
 
 
     @Override
     public void afterPropertiesSet() {
         try {
+            selectSql = String.format("SELECT %1$s, %2$s FROM %3$s", properties.getLeaderNameFiled(), properties.getLeaderUntilFiled(), properties.getLeaderTableName());
+            updateSql = String.format("UPDATE %3$s SET %1$s = ?, %2$s = ? WHERE %1$s = ? OR %1$s IS NULL OR UNTIL < ? OR %2$s IS NULL", properties.getLeaderNameFiled(), properties.getLeaderUntilFiled(), properties.getLeaderTableName());
+            releaseSql = String.format("UPDATE %3$s SET %1$s = NULL, %2$s = NULL", properties.getLeaderNameFiled(), properties.getLeaderUntilFiled(), properties.getLeaderTableName());
             getLeader();
         } catch (BadSqlGrammarException e) {
             throw new IllegalStateException("Most probably table does not exists:" + e.getMessage(), e);
@@ -39,48 +46,48 @@ public class JdbcLeaderElectionServiceImpl implements LeaderElectionService, Ini
     }
 
     private Leader getLeader() {
-        return jdbcTemplate.queryForObject("SELECT NAME, UNTIL FROM LEADER", Leader::new);
+        return jdbcTemplate.queryForObject(selectSql, Leader::new);
     }
 
     @Override
     public boolean isLeader() {
         Leader leader = getLeader();
         long time = currentTimeMillis.get();
-        if (Objects.equals(leader.name, name)) {
-            return tryBecameLeader(time);
+        String leaderName = properties.getLeaderName();
+        if (Objects.equals(leader.name, leaderName)) {
+            return tryBecameLeader(time, leaderName);
         }
         if (leader.until == null || new Timestamp(time).after(leader.until)) {
-            return tryBecameLeader(time);
+            return tryBecameLeader(time, leaderName);
         }
 
         return false;
     }
 
 
-    private boolean tryBecameLeader(long time) {
+    private boolean tryBecameLeader(long time, String leaderName) {
         Timestamp now = new Timestamp(time);
-        Timestamp lockUntil = new Timestamp(time + 5000);
+        Timestamp lockUntil = new Timestamp(time + properties.getLockInterval());
 
-        int updated = jdbcTemplate.update(
-                "UPDATE LEADER SET NAME = ?, UNTIL = ? WHERE NAME = ? OR NAME IS NULL OR UNTIL < ? OR UNTIL IS NULL",
-                name, lockUntil, name, now);
+        int updated = jdbcTemplate.update(updateSql, leaderName, lockUntil, leaderName, now);
         return updated > 0;
     }
 
 
     @Override
     public void releaseLeader() {
-        jdbcTemplate.update("UPDATE LEADER SET NAME = NULL, UNTIL = NULL");
-
+        if (isLeader()) {
+            jdbcTemplate.update(releaseSql);
+        }
     }
 
-    public static class Leader {
+    public class Leader {
         private final String name;
         private final Timestamp until;
 
         public Leader(ResultSet rs, int i) throws SQLException {
-            this.name = rs.getString("NAME");
-            this.until = rs.getTimestamp("UNTIL");
+            this.name = rs.getString(properties.getLeaderNameFiled());
+            this.until = rs.getTimestamp(properties.getLeaderUntilFiled());
         }
     }
 }

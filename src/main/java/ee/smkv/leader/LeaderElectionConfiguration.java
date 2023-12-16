@@ -7,14 +7,20 @@ import javax.sql.DataSource;
 
 @Configuration
 public class LeaderElectionConfiguration {
+
     @Bean
-    public LeaderElectionService leaderElectionService(DataSource dataSource) {
-        return new JdbcLeaderElectionServiceImpl(dataSource);
+    public LeaderElectionProperties leaderTableProperties() {
+        return new LeaderElectionProperties();
     }
 
     @Bean
-    public LeaderElectionWorker leaderElectionWorker(LeaderElectionService leaderElectionService, LeaderElectionBeanPostProcessor leaderElectionBeanPostProcessor) {
-        return new LeaderElectionWorker(leaderElectionService, leaderElectionBeanPostProcessor.getListeners());
+    public LeaderElectionService leaderElectionService(DataSource dataSource, LeaderElectionProperties properties) {
+        return new JdbcLeaderElectionServiceImpl(dataSource, properties);
+    }
+
+    @Bean
+    public LeaderElectionWorker leaderElectionWorker(LeaderElectionService leaderElectionService, LeaderElectionProperties properties, LeaderElectionBeanPostProcessor leaderElectionBeanPostProcessor) {
+        return new LeaderElectionWorker(leaderElectionService, properties, leaderElectionBeanPostProcessor.getListeners());
     }
 
     @Bean

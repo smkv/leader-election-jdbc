@@ -13,26 +13,28 @@ import java.util.concurrent.TimeUnit;
 public class LeaderElectionWorker {
     private static final Logger LOGGER = LoggerFactory.getLogger(LeaderElectionWorker.class);
     private final LeaderElectionService leaderElectionService;
+    private final LeaderElectionProperties properties;
     private final Set<LeaderElectionListener> listeners;
     private boolean leader = false;
     private ScheduledExecutorService scheduledExecutorService;
 
-    public LeaderElectionWorker(LeaderElectionService leaderElectionService, Set<LeaderElectionListener> listeners) {
+    public LeaderElectionWorker(LeaderElectionService leaderElectionService, LeaderElectionProperties properties, Set<LeaderElectionListener> listeners) {
         this.leaderElectionService = leaderElectionService;
+        this.properties = properties;
         this.listeners = listeners;
     }
 
     @PostConstruct
     public void start() {
-        LOGGER.info("Starting worker");
+        LOGGER.info("Starting worker {}", properties.getLeaderName());
         checkLeader();
         scheduledExecutorService = Executors.newScheduledThreadPool(1);
-        scheduledExecutorService.scheduleWithFixedDelay(this::checkLeader, 5000, 5000, TimeUnit.MILLISECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(this::checkLeader, properties.getPoolInterval(), properties.getPoolInterval(), TimeUnit.MILLISECONDS);
     }
 
     @PreDestroy
     public void stop() {
-        LOGGER.info("Stopping worker");
+        LOGGER.info("Stopping worker {}", properties.getLeaderName());
         if (scheduledExecutorService != null) {
             scheduledExecutorService.shutdownNow();
         }
@@ -56,12 +58,12 @@ public class LeaderElectionWorker {
     }
 
     private void notifyRevoked() {
-        LOGGER.info("Leader role revoked");
+        LOGGER.info("Leader role revoked for {}", properties.getLeaderName());
         listeners.forEach(LeaderElectionListener::revoked);
     }
 
     private void notifyGranted() {
-        LOGGER.info("Leader role granted");
+        LOGGER.info("Leader role granted for {}", properties.getLeaderName());
         listeners.forEach(LeaderElectionListener::granted);
     }
 }
