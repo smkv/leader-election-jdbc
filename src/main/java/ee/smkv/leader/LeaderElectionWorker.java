@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -40,29 +39,29 @@ public class LeaderElectionWorker {
         if (leader) {
             leaderElectionService.releaseLeader();
         }
-        listeners.forEach(LeaderElectionListener::revoked);
+        notifyRevoked();
     }
 
     protected void checkLeader() {
-        boolean newState = leaderElectionService.isLeader();
-        boolean granted = newState != leader && newState;
-        boolean revoked = newState != leader && !newState;
-        this.leader = newState;
+        boolean newLeader = leaderElectionService.isLeader();
+        boolean granted = newLeader != leader && newLeader;
+        boolean revoked = newLeader != leader && !newLeader;
+        this.leader = newLeader;
         if (granted) {
-            LOGGER.info("Leader role granted");
-            listeners.forEach(LeaderElectionListener::granted);
+            notifyGranted();
         }
         if (revoked) {
-            LOGGER.info("Leader role revoked");
-            listeners.forEach(LeaderElectionListener::revoked);
+            notifyRevoked();
         }
     }
 
+    private void notifyRevoked() {
+        LOGGER.info("Leader role revoked");
+        listeners.forEach(LeaderElectionListener::revoked);
+    }
 
-    public void addListener(LeaderElectionListener listener) {
-        listeners.add(listener);
-        if (leader) {
-            listener.granted();
-        }
+    private void notifyGranted() {
+        LOGGER.info("Leader role granted");
+        listeners.forEach(LeaderElectionListener::granted);
     }
 }

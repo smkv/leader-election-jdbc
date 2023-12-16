@@ -75,56 +75,12 @@ public class JdbcLeaderElectionServiceImpl implements LeaderElectionService, Ini
     }
 
     public static class Leader {
+        private final String name;
+        private final Timestamp until;
 
         public Leader(ResultSet rs, int i) throws SQLException {
             this.name = rs.getString("NAME");
             this.until = rs.getTimestamp("UNTIL");
-        }
-
-        public Leader(String name, Timestamp until) {
-            this.name = name;
-            this.until = until;
-        }
-
-
-        private String name;
-        private Timestamp until;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public Timestamp getUntil() {
-            return until;
-        }
-
-        public void setUntil(Timestamp until) {
-            this.until = until;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Leader leader = (Leader) o;
-            return Objects.equals(name, leader.name) && Objects.equals(until, leader.until);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name, until);
-        }
-
-        @Override
-        public String toString() {
-            return "Leader{" +
-                    "name='" + name + '\'' +
-                    ", until=" + until +
-                    '}';
         }
     }
 }
