@@ -42,7 +42,8 @@ All properties are optional:
   name.
 * `leader-election-jdbc.field-until` - Default: `UNTIL`. You can redefine table field there the application keep locking
   time.
-* `leader-election-jdbc.name` - Default: generates random `UUID`. You can explicit instance name here.
+* `leader-election-jdbc.name` - Default: generates random `UUID`. You can define explicit instance name here. For
+  example, it can come outside the application - kubernetes.
 * `leader-election-jdbc.pool-interval` - Default: `5000`. Pooling interval in milliseconds. This parameter affect how
   often leadership will be checked. If the value will be too small it will create higher load on system, but you can
   switch leader with smaller time gap.
