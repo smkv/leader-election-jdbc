@@ -50,6 +50,11 @@ public class LeaderElectionWorker {
     @PostConstruct
     public void start() {
         LOGGER.info("Starting worker {}", properties.getLeaderName());
+
+        if (properties.getLockInterval() <= properties.getPoolInterval()) {
+            LOGGER.error("Lock interval must be greater than pool interval. Leadership election may not work correctly.");
+        }
+
         checkLeader();
         scheduledExecutorService = Executors.newScheduledThreadPool(1);
         scheduledExecutorService.scheduleWithFixedDelay(this::checkLeader, properties.getPoolInterval(), properties.getPoolInterval(), TimeUnit.MILLISECONDS);
