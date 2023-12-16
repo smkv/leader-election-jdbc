@@ -76,11 +76,11 @@ public class JdbcLeaderElectionServiceImpl implements LeaderElectionService, Ini
     @Override
     public boolean checkAndBorrowLeadership() {
         Leader leader = getLeader();
-        long time = currentTimeMillis.get();
         String leaderName = properties.getLeaderName();
         if (Objects.equals(leader.name, leaderName)) {
-            return tryBecameLeader(time, leaderName);
+            return tryBecameLeader(currentTimeMillis.get(), leaderName);
         }
+        long time = currentTimeMillis.get();
         if (leader.until == null || time > leader.until.getTime()) {
             return tryBecameLeader(time, leaderName);
         }
