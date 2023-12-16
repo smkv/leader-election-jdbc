@@ -5,7 +5,7 @@ connection and small one-record table.
 
 ## How-to
 
-### Create a small table
+### Create a table with only one record
 
 Example of table:
 
@@ -13,11 +13,13 @@ Example of table:
 CREATE TABLE LEADER
 (
   NAME  VARCHAR(36),
-  UNTIL TIMESTAMP
+  UNTIL TIMESTAMP -- or DATETIME or similar
 );
 INSERT INTO LEADER (NAME, UNTIL)
 VALUES (NULL, NULL);
 ```
+
+The database application user requires only update grants to this table.
 
 ### Add annotation to your Spring application
 
