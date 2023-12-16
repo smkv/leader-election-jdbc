@@ -28,6 +28,8 @@ import java.util.UUID;
  * SOFTWARE.
  */
 public class LeaderElectionProperties {
+    @Value("${leader-election-jdbc.datasource:}")
+    private String dataSourceName = "";
     @Value("${leader-election-jdbc.table-name:LEADER}")
     private String leaderTableName = "LEADER";
     @Value("${leader-election-jdbc.field-name:NAME}")
@@ -41,6 +43,9 @@ public class LeaderElectionProperties {
     @Value("${leader-election-jdbc.lock-interval:6000}")
     private long lockInterval = 5000;
 
+    public String getDataSourceName() {
+        return dataSourceName;
+    }
 
     public String getLeaderTableName() {
         return leaderTableName;
