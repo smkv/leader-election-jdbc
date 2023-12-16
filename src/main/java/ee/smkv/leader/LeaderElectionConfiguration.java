@@ -1,6 +1,5 @@
 package ee.smkv.leader;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,17 +31,13 @@ import javax.sql.DataSource;
  */
 @Configuration
 public class LeaderElectionConfiguration {
-
-    @Autowired
-    private ApplicationContext context;
-
     @Bean
     public LeaderElectionProperties leaderTableProperties() {
         return new LeaderElectionProperties();
     }
 
     @Bean
-    public LeaderElectionService leaderElectionService(LeaderElectionProperties properties) {
+    public LeaderElectionService leaderElectionService(ApplicationContext context, LeaderElectionProperties properties) {
         DataSource dataSource;
         String dataSourceName = properties.getDataSourceName();
         if (dataSourceName == null || dataSourceName.isEmpty()) {
