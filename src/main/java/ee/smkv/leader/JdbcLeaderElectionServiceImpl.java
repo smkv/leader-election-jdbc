@@ -5,6 +5,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
 import java.sql.ResultSet;
@@ -40,6 +42,7 @@ import java.util.function.Supplier;
 public class JdbcLeaderElectionServiceImpl implements LeaderElectionService, InitializingBean {
 
     private final JdbcTemplate jdbcTemplate;
+    private final TransactionTemplate transactionTemplate;
     private final LeaderElectionProperties properties;
 
     protected Supplier<Long> currentTimeMillis = System::currentTimeMillis;
@@ -47,8 +50,9 @@ public class JdbcLeaderElectionServiceImpl implements LeaderElectionService, Ini
     private String updateSql;
     private String releaseSql;
 
-    public JdbcLeaderElectionServiceImpl(DataSource dataSource, LeaderElectionProperties properties) {
+    public JdbcLeaderElectionServiceImpl(DataSource dataSource, PlatformTransactionManager transactionManager, LeaderElectionProperties properties) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.properties = properties;
     }
 
@@ -92,16 +96,14 @@ public class JdbcLeaderElectionServiceImpl implements LeaderElectionService, Ini
     private boolean tryBecameLeader(long time, String leaderName) {
         Timestamp now = new Timestamp(time);
         Timestamp lockUntil = new Timestamp(time + properties.getLockInterval());
-
-        int updated = jdbcTemplate.update(updateSql, leaderName, lockUntil, leaderName, now);
-        return updated > 0;
+        return transactionTemplate.execute(status -> jdbcTemplate.update(updateSql, leaderName, lockUntil, leaderName, now) > 0);
     }
 
 
     @Override
     public void releaseLeadership() {
         if (checkAndBorrowLeadership()) {
-            jdbcTemplate.update(releaseSql);
+            transactionTemplate.execute(status -> jdbcTemplate.update(releaseSql));
         }
     }
 

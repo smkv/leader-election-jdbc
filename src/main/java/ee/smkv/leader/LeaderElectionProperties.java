@@ -30,6 +30,8 @@ import java.util.UUID;
 public class LeaderElectionProperties {
     @Value("${leader-election-jdbc.datasource:}")
     private String dataSourceName = "";
+    @Value("${leader-election-jdbc.transaction-manager:}")
+    private String transactionManagerName = "";
     @Value("${leader-election-jdbc.table-name:LEADER}")
     private String leaderTableName = "LEADER";
     @Value("${leader-election-jdbc.field-name:NAME}")
@@ -45,6 +47,10 @@ public class LeaderElectionProperties {
 
     public String getDataSourceName() {
         return dataSourceName;
+    }
+
+    public String getTransactionManagerName() {
+        return transactionManagerName;
     }
 
     public String getLeaderTableName() {

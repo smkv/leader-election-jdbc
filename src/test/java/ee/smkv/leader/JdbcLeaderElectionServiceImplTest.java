@@ -15,7 +15,7 @@ class JdbcLeaderElectionServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new JdbcLeaderElectionServiceImpl(dbHelper.getDataSource(), new LeaderElectionProperties());
+        service = new JdbcLeaderElectionServiceImpl(dbHelper.getDataSource(), dbHelper.getTransactionManager(), new LeaderElectionProperties());
     }
 
     @AfterEach

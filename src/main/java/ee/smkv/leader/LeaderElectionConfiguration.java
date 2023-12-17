@@ -1,8 +1,11 @@
 package ee.smkv.leader;
 
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
@@ -38,14 +41,31 @@ public class LeaderElectionConfiguration {
 
     @Bean
     public LeaderElectionService leaderElectionService(ApplicationContext context, LeaderElectionProperties properties) {
-        DataSource dataSource;
-        String dataSourceName = properties.getDataSourceName();
-        if (dataSourceName == null || dataSourceName.isEmpty()) {
-            dataSource = context.getBean(DataSource.class);
+        DataSource dataSource = getDataSource(context, properties);
+        PlatformTransactionManager transactionManager = getTransactionManager(context, dataSource, properties);
+        return new JdbcLeaderElectionServiceImpl(dataSource, transactionManager, properties);
+    }
+
+    private DataSource getDataSource(ApplicationContext context, LeaderElectionProperties properties) {
+        String name = properties.getDataSourceName();
+        if (name == null || name.isEmpty()) {
+            return context.getBean(DataSource.class);
         } else {
-            dataSource = context.getBean(dataSourceName, DataSource.class);
+            return context.getBean(name, DataSource.class);
         }
-        return new JdbcLeaderElectionServiceImpl(dataSource, properties);
+    }
+
+    private PlatformTransactionManager getTransactionManager(ApplicationContext context, DataSource dataSource, LeaderElectionProperties properties) {
+        String name = properties.getTransactionManagerName();
+        if (name == null || name.isEmpty()) {
+            try {
+                return context.getBean(PlatformTransactionManager.class);
+            } catch (NoSuchBeanDefinitionException e) {
+                return new DataSourceTransactionManager(dataSource);
+            }
+        } else {
+            return context.getBean(name, PlatformTransactionManager.class);
+        }
     }
 
     @Bean

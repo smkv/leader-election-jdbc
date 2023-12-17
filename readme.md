@@ -64,7 +64,11 @@ public class MyService implements LeaderElectionListener {
 All properties are optional:
 
 * `leader-election-jdbc.datasource` - You can define name of `java.sql.DataSource` bean in case of project with multiple
-  database connections.
+  database connections. If application has single datasource then it will be taken by default.
+* `leader-election-jdbc.transaction-manager` - You can define name
+  of `org.springframework.transaction.PlatformTransactionManager` bean in case of project with multiple
+  database connections. If application has single transaction manager then it will be taken by default. If no defined
+  any then new `org.springframework.jdbc.datasource.DataSourceTransactionManager` will be used.
 * `leader-election-jdbc.table-name` - Default: `LEADER`. You can redefine table name as you wish, one of example to add
   schema name to table.
 * `leader-election-jdbc.field-name` - Default: `NAME`. You can redefine table field there the application keep leader
